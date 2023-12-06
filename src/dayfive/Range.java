@@ -25,10 +25,18 @@ public class Range {
 		long val = Long.valueOf(value);
 		return String.valueOf(this.map + (val - this.start));
 	}
+	
+	public long getLongValueFor(long value) {
+		return this.map + (value - this.start);
+	}
 
 	public boolean hasValue(String value) {
 		long val = Long.valueOf(value);
 		boolean ret = val >= this.start && val <= (this.start + this.end - 1);
 		return ret;
+	}
+	
+	public boolean hasValue(long value) {
+		return value >= this.start && value <= (this.start + this.end - 1);
 	}
 }

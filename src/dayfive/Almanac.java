@@ -9,7 +9,6 @@ public class Almanac {
 	private String from;
 	private String to;
 	private Vector<Range> ranges = new Vector<>();
-	private HashMap<String, String> cachedValues = new HashMap<>();
 
 	public Almanac(String from, String to) {
 		this.from = from;
@@ -31,6 +30,18 @@ public class Almanac {
 			ret.putAll(r.getValues());
 		});
 		return ret;
+	}
+	
+	public long getMappedLongValue(long value) {
+		try {
+			return this.ranges.stream()
+				.filter(range -> { return range.hasValue(value); })
+				.findFirst()
+				.get()
+				.getLongValueFor(value);	
+		} catch (NoSuchElementException ex) {
+			return value;
+		}
 	}
 	
 	public String getMappedValue(String value) {

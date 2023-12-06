@@ -36,17 +36,81 @@ public class DayFive {
 		
 		System.out.println("Almanacs built. Seed count: " + seeds.size());
 		
-		Vector<Long> allSeeds = new Vector<>();
+		Vector<Long> minimums = new Vector<>();
 		for (int i = 0; i < seeds.size(); i+=2) {
 			long seed = Long.valueOf(seeds.get(i));
 			long range = Long.valueOf(seeds.get(i+1));
-			System.out.println("Creating " + range + " values on top of " + seed);
-			for (long j = 0; j < range; j++) {
-				allSeeds.add(seed + j);
+			minimums.add(DayFive.checkValue(almanacs, seed, range));
+		}
+		System.out.println(minimums);
+	}
+	
+	private static long checkValue(HashMap<String, Almanac> almanacs, long start, long range) {
+		System.out.println("Checking " + start + " range " + range + " : ");
+		Vector<Long> seeds = new Vector<>();
+		for (long i = 0; i < range; i++) {
+			seeds.add(start + i);
+		}
+		
+		Vector<Long> minimums = new Vector<>();
+		seeds.forEach(seed -> {
+			Almanac almanac = null;
+			String next = "seed";
+			long result = seed;
+			while (!next.equals("location")) {
+				almanac = almanacs.get(next);
+				next = almanac.getNext();
+				result = almanac.getMappedLongValue(result);
+			}
+			minimums.add(result);
+		});
+		System.out.println("\tDone");
+		
+		return Collections.min(minimums);
+	}
+	
+	private static void runPartTwo()
+	{
+		Vector<String> lines = FileReader.readFile("./src/dayfive/input.txt");
+		HashMap<String, Almanac> almanacs = new HashMap<>();
+		Vector<String> seeds = new Vector<>();
+		
+		Almanac a = null;
+		for (int idx = 0; idx < lines.size(); idx++) {
+			String line = lines.get(idx);
+			if (line.startsWith("seeds: ")) {
+				seeds.addAll(Arrays.stream(line.substring(7).split(" ")).map(v -> v.trim()).toList());
+			} else if (line.endsWith("map:")) {
+				String[] parts = line.substring(0, line.length() - 5).split("-to-");
+				String from = parts[0].trim();
+				String to = parts[1].trim();
+				a = new Almanac(from, to);
+			} else if (line.trim().equals("")) {
+				if (a != null) {
+					almanacs.put(a.getFrom(), a);	
+				}
+			} else {
+				a.addRange(line);
 			}
 		}
-		System.out.println("Seeds: " + allSeeds.size());
+		almanacs.put(a.getFrom(), a);
 		
+		System.out.println("Almanacs built. Seed count: " + seeds.size());
+		
+		Vector<Long> minimums = new Vector<>();
+		for (int i = 0; i < seeds.size(); i+=2) {
+			long seed = Long.valueOf(seeds.get(i));
+			long range = Long.valueOf(seeds.get(i+1));
+			minimums.add(DayFive.checkAlmanacs(almanacs, seed, range));
+		}
+		System.out.println(minimums);		
+	}
+	
+	private static long checkAlmanacs(HashMap<String, Almanac> almanacs, long start, long range) {
+		Vector<Long> seeds = new Vector<>();
+		for (long i = 0; i < range; i++) {
+			seeds.add(start + i);
+		}
 		Almanac almanac = null;
 		String next = "seed";
 		while (!next.equals("location")) {
@@ -55,16 +119,16 @@ public class DayFive {
 			next = almanac.getNext();
 			
 			HashMap<Long, Long> fullMapping = almanac.getFullMapping();
-			List<Long> keysInSeeds = fullMapping.keySet().stream().filter(k -> allSeeds.contains(k)).toList();
-			List<Long> unmappedSeeds = allSeeds.stream().filter(s -> !fullMapping.containsKey(s)).toList();
-			allSeeds.clear();
-			allSeeds.addAll(unmappedSeeds);
+			List<Long> keysInSeeds = fullMapping.keySet().stream().filter(k -> seeds.contains(k)).toList();
+			List<Long> unmappedSeeds = seeds.stream().filter(s -> !fullMapping.containsKey(s)).toList();
+			seeds.clear();
+			seeds.addAll(unmappedSeeds);
 			keysInSeeds.forEach(k -> {
-				allSeeds.add(fullMapping.get(k));
+				seeds.add(fullMapping.get(k));
 			});
 		}
 		
-		System.out.println(Collections.min(allSeeds));
+		return Collections.min(seeds);
 	}
 	
 	public void runPartOne() {
