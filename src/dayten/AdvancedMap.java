@@ -30,7 +30,6 @@ public class AdvancedMap {
 		
 		Tile tile = this.getTile(row, column);
 		loop.add(tile);
-		this.rows.get(row).get(column).setKept();
 		this.points.add(new Point(row, column));
 		
 		while (true) {
@@ -53,35 +52,36 @@ public class AdvancedMap {
 			}
 			tile = getTile(row, column);
 			loop.add(tile);
-			if (tile.equals("J") || tile.equals("7") || tile.equals("L") || tile.equals("F")) {
-				this.points.add(new Point(row, column));	
-			}
-			this.rows.get(row).get(column).setKept();
 			if (tile.equals("S") || direction.equals("X")) {
 				break;
 			}
+			this.points.add(new Point(row, column));
 		}
 		
 		return loop;
 	}
-	
-	public long area() {
-		// Shoelace Algorithm
-		long sum1 = 0;
-		long sum2 = 0;
-		for (int i = 0; i < this.points.size() - 1; i++) {
-			sum1 += (this.points.get(i).getX() * this.points.get(i+1).getY());
-			sum2 += (this.points.get(i).getY() * this.points.get(i+1).getX());
-		}
-		sum1 += (this.points.lastElement().getX() * this.points.firstElement().getY());
-		sum2 += (this.points.firstElement().getX() * this.points.lastElement().getY());
+
+	public long findEnclosed() {
+		Vector<Point> path = this.points;
+		int pathLength = path.size();
 		
-		return Math.abs(sum1 - sum2) / 2;
-	}
-	
-	public long enclosedPointCount() {
-		// Picks Formula: Area = numberOfPoints + pointsOnBoundary/2 - 1
-		return area() - (this.points.size()/2) - 1;
+		long sum = 0;
+		
+		for (int i = 0; i <= pathLength -1; i++) {
+			Point one = path.get(i);
+			Point two = null;
+			try {
+				two = path.get(i+1);	
+			} catch (ArrayIndexOutOfBoundsException ex) {
+				two = path.get(0);
+			}
+			
+			sum += (one.getX() + two.getX()) * (one.getY() - two.getY());
+		}
+
+		long area = Math.abs(sum) / 2;
+
+		return area - ((pathLength)/2) + 1 ;
 	}
 		
 	public int getSize() {
