@@ -10,39 +10,6 @@ public class Starmap {
 		this.rows.add(row);
 	}
 	
-	public void expand() {
-		int maxRows = this.rows.size();
-		for (int i = 0; i < maxRows; i++) {
-			String row = this.rows.get(i);
-			if (row.replaceAll("\\.", "").trim().length() == 0) {
-				this.rows.insertElementAt(row, i);
-				i++;
-				maxRows++;
-			}
-		}
-		int rows = this.rows.size();
-		int columns = this.rows.get(0).length();
-		for (int j = 0; j < columns; j++) {
-			boolean found = false;
-			for (int i = 0; i < rows; i++) {
-				if (this.rows.get(i).charAt(j) != '.') {
-					found = true;
-					break;
-				}
-			}
-			if (!found) {
-				// This column needs to expand.
-				for (int i = 0; i < rows; i++) {
-					String currentRow = this.rows.get(i);
-					currentRow = currentRow.substring(0, j) + "." + currentRow.substring(j);
-					this.rows.set(i, currentRow);	
-				}
-				j++; // We've just added a column behind us, so our index moves on one.
-				columns++; // We now also have more columns.
-			}
-		}
-	}
-	
 	public void scan() {
 		for (int rowIdx = 0; rowIdx < this.rows.size(); rowIdx++) {
 			String row = this.rows.get(rowIdx);
@@ -54,16 +21,54 @@ public class Starmap {
 		}
 	}
 	
-	public Vector<Point> getGalaxies() {
-		return this.galaxies;
-	}
-	
 	public String toString() {
 		String x = "";
 		for (int i = 0; i < this.rows.size(); i++) {
 			x += this.rows.get(i) + "\n";
 		}
 		return x;
+	}
+
+	public void expand(int addition) {
+		// Loop through all the rows.
+		long currentAddition = 0;
+		for (int rowIdx = 0; rowIdx < this.rows.size(); rowIdx++) {
+			String row = this.rows.get(rowIdx);
+			if (row.replaceAll("\\.", "").trim().length() == 0) {
+				this.updateGalaxyRow(rowIdx + currentAddition, addition);
+				currentAddition += addition;
+			}
+		}
+		
+		// Loop through all the columns.
+		int rows = this.rows.size();
+		int columns = this.rows.get(0).length();
+		currentAddition = 0;
+		for (int j = 0; j < columns; j++) {
+			boolean found = false;
+			for (int i = 0; i < rows; i++) {
+				if (this.rows.get(i).charAt(j) != '.') {
+					found = true;
+					break;
+				}
+			}
+			if (!found) {
+				this.updateGalaxiesColumn(j + currentAddition, addition);
+				currentAddition += addition;
+			}
+		}
+	}
+	
+	public long getDistanceSum() {
+		long sum = 0;
+		for (int i = 0; i < this.galaxies.size() - 1; i++) {
+			for (int j = i+1; j < this.galaxies.size(); j++) {
+				long distance = this.galaxies.get(i).distanceTo(this.galaxies.get(j));
+				sum += distance;
+			}
+		}
+		
+		return sum;
 	}
 	
 	private void updateGalaxiesColumn(long minY, int addition) {
@@ -80,38 +85,6 @@ public class Starmap {
 			if (this.galaxies.get(i).getX() > minX) {
 				Point p = this.galaxies.get(i);
 				this.galaxies.set(i, new Point(p.getX() + addition, p.getY()));
-			}
-		}
-	}
-
-	public void expand(int addition) {
-		// Loop through all the rows.
-		// Every time we duplicate a row, all the points after that row get +1000000 to their X coord
-		long currentAddition = 0;
-		for (int rowIdx = 0; rowIdx < this.rows.size(); rowIdx++) {
-			String row = this.rows.get(rowIdx);
-			if (row.replaceAll("\\.", "").trim().length() == 0) {
-				this.updateGalaxyRow(rowIdx + currentAddition, addition);
-				currentAddition += addition;
-			}
-		}
-		
-		// Loop through all the columns.
-		// Every time we duplicate a column, all the points after that column get +1000000 to their Y coord
-		int rows = this.rows.size();
-		int columns = this.rows.get(0).length();
-		currentAddition = 0;
-		for (int j = 0; j < columns; j++) {
-			boolean found = false;
-			for (int i = 0; i < rows; i++) {
-				if (this.rows.get(i).charAt(j) != '.') {
-					found = true;
-					break;
-				}
-			}
-			if (!found) {
-				this.updateGalaxiesColumn(j + currentAddition, addition);
-				currentAddition += addition;
 			}
 		}
 	}
